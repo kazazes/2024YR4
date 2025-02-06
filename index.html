@@ -9,70 +9,256 @@
         margin: 0;
         overflow: hidden;
         background-color: #000;
+        font-family: "Courier New", monospace;
       }
       canvas {
         display: block;
       }
+
+      /* Scanline effect */
+      body::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.05) 0px,
+          rgba(0, 0, 0, 0.05) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+        pointer-events: none;
+        animation: scanlines 20s infinite linear;
+        opacity: 0.3;
+      }
+
+      @keyframes scanlines {
+        from {
+          background-position: 0 0;
+        }
+        to {
+          background-position: 0 100%;
+        }
+      }
+
+      /* CRT screen effect */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          circle at center,
+          transparent 0%,
+          rgba(0, 0, 0, 0.2) 90%,
+          rgba(0, 0, 0, 0.4) 100%
+        );
+        pointer-events: none;
+      }
+
       #info {
         position: absolute;
-        top: 10px;
+        top: 20px;
         width: 100%;
-        color: white;
+        color: #0f0;
         text-align: center;
-        font-family: Arial, sans-serif;
-        pointer-events: none;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 10px #0f0;
+        animation: flicker 5s infinite;
       }
+
+      @keyframes flicker {
+        0% {
+          opacity: 1;
+        }
+        49% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.8;
+        }
+        51% {
+          opacity: 1;
+        }
+        59% {
+          opacity: 1;
+        }
+        60% {
+          opacity: 0.8;
+        }
+        61% {
+          opacity: 1;
+        }
+      }
+
       #risk-info {
         position: absolute;
-        top: 40px;
+        top: 80px;
         width: 100%;
-        color: #ff4444;
+        color: #f00;
         text-align: center;
-        font-family: Arial, sans-serif;
-        pointer-events: none;
         font-weight: bold;
-        text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+        text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+        background: rgba(20, 0, 0, 0.5);
+        padding: 20px 0;
+        border-top: 1px solid rgba(255, 0, 0, 0.3);
+        border-bottom: 1px solid rgba(255, 0, 0, 0.3);
       }
+
       .torino-3 {
-        color: #ff4444;
-        animation: pulse 2s infinite;
+        color: #f00;
+        animation: warning-pulse 1.5s infinite;
       }
-      @keyframes pulse {
+
+      @keyframes warning-pulse {
+        0% {
+          text-shadow: 0 0 10px #f00;
+        }
+        50% {
+          text-shadow: 0 0 20px #f00, 0 0 40px #f00;
+        }
+        100% {
+          text-shadow: 0 0 10px #f00;
+        }
+      }
+
+      #controls {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        color: #0f0;
+        background: rgba(0, 20, 0, 0.8);
+        padding: 20px;
+        border: 1px solid #0f0;
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        border-radius: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      #controls label {
+        display: block;
+        margin: 10px 0;
+        cursor: pointer;
+      }
+
+      #controls input[type="checkbox"] {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border: 1px solid #0f0;
+        background: transparent;
+        margin-right: 8px;
+        position: relative;
+        cursor: pointer;
+      }
+
+      #controls input[type="checkbox"]:checked::before {
+        content: "✓";
+        position: absolute;
+        color: #0f0;
+        font-size: 14px;
+        left: 2px;
+        top: -2px;
+      }
+
+      #impactSelect {
+        background: rgba(0, 20, 0, 0.8);
+        color: #0f0;
+        border: 1px solid #0f0;
+        padding: 5px;
+        margin: 10px 0;
+        width: 100%;
+        cursor: pointer;
+      }
+
+      #simulateImpact {
+        background: #f00;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin-top: 10px;
+        cursor: pointer;
+        text-transform: uppercase;
+        font-weight: bold;
+        letter-spacing: 2px;
+        animation: button-pulse 2s infinite;
+        width: 100%;
+      }
+
+      @keyframes button-pulse {
+        0% {
+          background-color: #f00;
+          box-shadow: 0 0 10px #f00;
+        }
+        50% {
+          background-color: #d00;
+          box-shadow: 0 0 20px #f00;
+        }
+        100% {
+          background-color: #f00;
+          box-shadow: 0 0 10px #f00;
+        }
+      }
+
+      /* Warning overlay for impact simulation */
+      .warning-overlay {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #f00;
+        font-size: 24px;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        pointer-events: none;
+        z-index: 1000;
+        animation: warning-flash 0.5s infinite;
+      }
+
+      @keyframes warning-flash {
         0% {
           opacity: 1;
         }
         50% {
-          opacity: 0.5;
+          opacity: 0;
         }
         100% {
           opacity: 1;
         }
       }
-      #controls {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        color: white;
-        font-family: Arial, sans-serif;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 10px;
-        border-radius: 5px;
-      }
     </style>
   </head>
   <body>
-    <div id="info">Asteroid 2024 YR4 Orbit Visualization</div>
+    <div id="info">
+      ⚠ Weyland-Yutani Corporation ⚠<br />Asteroid Threat Assessment System
+    </div>
     <div id="risk-info"></div>
     <div id="controls">
+      <div style="color: #0f0; margin-bottom: 15px; font-size: 0.9em">
+        SYSTEM STATUS: ONLINE
+      </div>
       <label>
         <input type="checkbox" id="showOrbit" checked />
-        Show Orbit
+        Orbital Path Display
       </label>
       <br />
       <label>
         <input type="checkbox" id="animateAsteroid" checked />
-        Animate Asteroid
+        Real-time Tracking
       </label>
+    </div>
+    <div class="warning-overlay" id="warningOverlay">
+      ⚠ IMPACT SIMULATION IN PROGRESS ⚠<br />
+      STAND BY FOR ANALYSIS
     </div>
     <script type="importmap">
       {
@@ -112,10 +298,19 @@
       // Create starfield
       const starGeometry = new THREE.BufferGeometry();
       const starVertices = [];
-      for (let i = 0; i < 20000; i++) {
-        const x = THREE.MathUtils.randFloatSpread(1e10);
-        const y = THREE.MathUtils.randFloatSpread(1e10);
-        const z = THREE.MathUtils.randFloatSpread(1e10);
+      const STAR_RADIUS = 1e10; // Distance to stars (10x the scene size)
+      const STAR_COUNT = 20000; // Fewer stars for better performance
+
+      for (let i = 0; i < STAR_COUNT; i++) {
+        // Generate random spherical coordinates
+        const theta = 2 * Math.PI * Math.random(); // Azimuthal angle
+        const phi = Math.acos(2 * Math.random() - 1); // Polar angle
+
+        // Convert to Cartesian coordinates on a sphere
+        const x = STAR_RADIUS * Math.sin(phi) * Math.cos(theta);
+        const y = STAR_RADIUS * Math.sin(phi) * Math.sin(theta);
+        const z = STAR_RADIUS * Math.cos(phi);
+
         starVertices.push(x, y, z);
       }
       starGeometry.setAttribute(
@@ -124,7 +319,10 @@
       );
       const starMaterial = new THREE.PointsMaterial({
         color: 0xffffff,
-        size: 1e7,
+        size: 3, // Fixed pixel size
+        sizeAttenuation: false,
+        opacity: 0.8,
+        transparent: true,
       });
       const starField = new THREE.Points(starGeometry, starMaterial);
       scene.add(starField);
@@ -409,6 +607,10 @@
           currentImpactIndex = selectedIndex;
           isSimulatingImpact = true;
 
+          // Show warning overlay
+          const warningOverlay = document.getElementById("warningOverlay");
+          warningOverlay.style.display = "block";
+
           // Store current camera position for reset
           const originalCameraPos = camera.position.clone();
 
@@ -432,11 +634,12 @@
           setTimeout(() => {
             camera.position.copy(originalCameraPos);
             controls.target.set(0, 0, 0);
-          }, 10000); // Reset after 10 seconds
+            warningOverlay.style.display = "none";
+          }, 10000);
         }
       });
 
-      // Display risk information
+      // Update risk information display
       const riskInfo = document.getElementById("risk-info");
       const torinoScale = ephemeris.impact_risk.torino_scale.maximum;
       const impactVelocity = ephemeris.impact_risk.impact_velocity;
@@ -445,19 +648,19 @@
 
       riskInfo.innerHTML = `
         <span class="torino-3">
-          ⚠️ Impact Risk Assessment: Torino Scale ${torinoScale} ⚠️
+          ⚠ THREAT ASSESSMENT: TORINO SCALE ${torinoScale} ⚠
           <br>
           <span style="font-size: 0.9em">
-            Requires attention from astronomers - Potential for regional damage
+            ALERT: IMMEDIATE ASTRONOMICAL OBSERVATION REQUIRED
             <br>
-            Impact Velocity: ${impactVelocity.value.toFixed(2)} ${
+            IMPACT VELOCITY: ${impactVelocity.value.toFixed(2)} ${
         impactVelocity.unit
       }
             <br>
-            Potential Impacts: ${potentialImpacts.count} detected
+            DETECTED IMPACT SCENARIOS: ${potentialImpacts.count}
             <br>
             <span style="font-size: 0.8em; opacity: 0.8;">
-              Last Updated: ${lastUpdated || "Not available"}
+              LAST SYSTEM UPDATE: ${lastUpdated || "DATA UNAVAILABLE"}
             </span>
           </span>
         </span>
