@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <title>2024 YR4 Orbit (Three.js)</title>
     <link rel="icon" href="data:," />
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Asteroid 2024 YR4 Threat Assessment" />
+    <meta
+      property="og:description"
+      content="Real-time visualization and threat assessment of asteroid 2024 YR4. Current Torino Scale: 3. Interactive 3D orbital visualization."
+    />
+    <meta property="og:image" content="og_threat_assessment.png" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Asteroid 2024 YR4 Threat Assessment" />
+    <meta
+      name="twitter:description"
+      content="Real-time visualization and threat assessment of asteroid 2024 YR4. Current Torino Scale: 3. Interactive 3D orbital visualization."
+    />
+    <meta name="twitter:image" content="og_threat_assessment.png" />
     <!-- Retro digital font -->
     <link
       href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
@@ -97,7 +113,7 @@
           opacity: 1;
         }
       }
-      /* Risk Info & Countdown (combined) */
+      /* Risk Info, Countdown & Sim Date */
       #risk-info {
         position: absolute;
         top: 80px;
@@ -112,8 +128,8 @@
         border-bottom: 1px solid rgba(255, 0, 0, 0.3);
         font-size: 1.2em;
       }
-      /* Countdown styling inside risk-info */
-      #countdown {
+      #countdown,
+      #simDate {
         margin-top: 10px;
         font-size: 1.2em;
       }
@@ -477,8 +493,9 @@
       ⚠ Weyland-Yutani Corporation ⚠<br />Asteroid Threat Assessment System
     </div>
     <div id="risk-info">
-      <!-- Risk info and countdown get injected here -->
+      <!-- Risk info, countdown, and simulation date are injected here -->
       <div id="countdown"></div>
+      <div id="simDate"></div>
     </div>
     <div id="controls">
       <div style="color: #0f0; margin-bottom: 15px">SYSTEM STATUS: ONLINE</div>
@@ -530,7 +547,7 @@
             parameter, etc. (Some values may be null.)
           </li>
           <li>
-            <strong>Impact Risk:</strong> Impact probability (converted to a
+            <strong>Impact Risk:</strong> Impact probability (shown as a
             percentage), Palermo scale, Torino scale, and predicted impact dates
             with probabilities (as percentages) from the JPL Sentry System.
           </li>
@@ -541,13 +558,14 @@
         </ul>
         <p>
           The orbital position is computed via:
-          <br /><em>r = a(1 - e²) / (1 + e cos f)</em> <br />with rotations for
-          the argument of periapsis, inclination, and ascending node.
+          <br /><em>r = a(1 - e²) / (1 + e cos f)</em> <br />with rotations
+          applied for the argument of periapsis, inclination, and ascending
+          node.
         </p>
         <p>
-          Additionally, a live countdown to the next potential impact and a
-          dynamic impact cone (visualizing uncertainty based on RMS) are
-          displayed.
+          Additionally, a live countdown to the next potential impact, a dynamic
+          impact cone (visualizing uncertainty based on RMS), and a realistic
+          Earth with its Moon are displayed.
           <br /><br />
           <em>Note:</em> This system is for informational and entertainment
           purposes only.
@@ -585,7 +603,6 @@
       import * as THREE from "three";
       import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-      // Wrap everything in an async IIFE to load ephemeris first.
       (async function init() {
         // Load ephemeris data.
         const response = await fetch("ephemeris.json");
@@ -604,6 +621,7 @@
         const AU = 1.495978707e8; // km
         const deg2rad = Math.PI / 180;
         const EARTH_RADIUS = 6371; // km
+        const displayedEarthRadius = EARTH_RADIUS * 1000; // For our Earth mesh
 
         // Set up scene, camera, renderer.
         const scene = new THREE.Scene();
@@ -695,55 +713,35 @@
         const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
         scene.add(sunMesh);
 
-        // Earth.
-        // const earthGeometry = new THREE.SphereGeometry(
-        //   EARTH_RADIUS * 1000,
-        //   32,
-        //   32
-        // );
-        // const earthMaterial = new THREE.MeshBasicMaterial({ color: 0x0077ff });
-        // const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
-        // earthMesh.position.set(AU, 0, 0);
-        // scene.add(earthMesh);
-
-        // Load a realistic Earth texture (public domain)
+        // Earth with realistic texture.
         const earthTexture = new THREE.TextureLoader().load(
           "https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg"
         );
-        // Use MeshStandardMaterial for better lighting and opacity
         const earthMaterial = new THREE.MeshStandardMaterial({
           map: earthTexture,
-          roughness: 0.3, // Lower roughness for more shine
-          metalness: 0.0, // No metalness for natural look
-          transparent: false,
-          side: THREE.FrontSide, // Only render front side
+          roughness: 0.3,
+          metalness: 0.0,
+          side: THREE.FrontSide,
           opacity: 1.0,
         });
-
-        // Create Earth with the texture
         const earthGeometry = new THREE.SphereGeometry(
-          EARTH_RADIUS * 1000,
+          displayedEarthRadius,
           32,
           32
         );
         const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
         earthMesh.position.set(AU, 0, 0);
+        scene.add(earthMesh);
 
-        // Add ambient light for base illumination
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased ambient light
+        // Ambient & directional lights.
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
-
-        // Add directional light from the Sun's position
-        const sunLight = new THREE.DirectionalLight(0xffffff, 2.0); // Increased sun brightness
-        sunLight.position.set(0, 0, 0); // At Sun's position
-        sunLight.target = earthMesh; // Make sure the light targets Earth
+        const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
+        sunLight.position.set(0, 0, 0);
+        sunLight.target = earthMesh;
         scene.add(sunLight);
-
-        // Add a hemisphere light for better ambient illumination
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5);
         scene.add(hemiLight);
-
-        scene.add(earthMesh);
 
         // Earth label.
         function makeLabel(text) {
@@ -763,7 +761,26 @@
         }
         const earthLabel = makeLabel("Earth");
         earthMesh.add(earthLabel);
-        earthLabel.position.set(0, EARTH_RADIUS * 2000, 0);
+        earthLabel.position.set(0, displayedEarthRadius * 2, 0);
+
+        // Add Moon.
+        const moonOrbitRadius = displayedEarthRadius * 1.2;
+        const moonMeshRadius = displayedEarthRadius * 0.05;
+        const moonTexture = new THREE.TextureLoader().load(
+          "https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg"
+        );
+        const moonGeometry = new THREE.SphereGeometry(moonMeshRadius, 32, 32);
+        const moonMaterial = new THREE.MeshStandardMaterial({
+          map: moonTexture,
+          roughness: 0.7,
+        });
+        const moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
+        // Create a pivot for Moon orbit.
+        const moonPivot = new THREE.Object3D();
+        earthMesh.add(moonPivot);
+        // Position Moon relative to the pivot.
+        moonMesh.position.set(moonOrbitRadius, 0, 0);
+        moonPivot.add(moonMesh);
 
         // Asteroid.
         const asteroidGeometry = new THREE.SphereGeometry(
@@ -831,7 +848,16 @@
             </span>
           </span>
           <div id="countdown"></div>
+          <div id="simDate"></div>
         `;
+
+        // Compute simulation date relative to the asteroid's position.
+        // Use epoch_description "2025-Jan-17.00" as our epoch.
+        const epochDate = new Date("2025-01-17T00:00:00Z");
+        // Compute orbital period using Kepler's third law: T(years) = a^(3/2).
+        const orbitalPeriodYears = Math.pow(a, 1.5);
+        const orbitalPeriodMs = orbitalPeriodYears * 365.25 * 24 * 3600 * 1000;
+
         // Set countdown based on first potential impact date.
         let nextImpactDate;
         if (potentialImpacts.dates.length > 0) {
@@ -855,6 +881,20 @@
           ).textContent = `Impact in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
         }
         setInterval(updateCountdown, 1000);
+
+        // Update simulation date (linked to asteroid's position).
+        let time = 0;
+        const period = 10; // seconds for one simulation orbit
+        function updateSimDate() {
+          // Fraction of simulation orbit completed.
+          const fraction = (time % period) / period;
+          // Simulated date = epochDate + fraction * real orbital period.
+          const simDate = new Date(
+            epochDate.getTime() + fraction * orbitalPeriodMs
+          );
+          document.getElementById("simDate").textContent =
+            "Simulation Date: " + simDate.toLocaleString();
+        }
 
         // Impact Cone Visualization.
         let impactCone;
@@ -963,14 +1003,15 @@
         });
 
         // Main animation loop.
-        let time = 0;
-        const period = 10;
         function animateScene() {
           requestAnimationFrame(animateScene);
           time += 0.016;
           const f = ((time % period) / period) * 2 * Math.PI;
           const pos = orbitalPosition(f);
           asteroidMesh.position.copy(pos);
+          updateSimDate(); // Update simulation date based on asteroid position.
+          // Update Moon orbit.
+          moonPivot.rotation.y += 0.005;
           const distance = pos.distanceTo(earthMesh.position);
           if (distance < 1e8) {
             if (!impactCone) {
@@ -1003,7 +1044,7 @@
 
         // Update RMS label on Earth.
         const rmsLabel = makeLabel(`RMS: ${residualRMS.toFixed(3)}`);
-        rmsLabel.position.set(0, EARTH_RADIUS * 2500, 0);
+        rmsLabel.position.set(0, displayedEarthRadius * 2.5, 0);
         earthMesh.add(rmsLabel);
 
         window.addEventListener("resize", () => {
