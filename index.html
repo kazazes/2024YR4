@@ -4,12 +4,17 @@
     <meta charset="UTF-8" />
     <title>2024 YR4 Orbit (Three.js)</title>
     <link rel="icon" href="data:," />
+    <!-- Retro digital font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
+      rel="stylesheet"
+    />
     <style>
       body {
         margin: 0;
         overflow: hidden;
         background-color: #000;
-        font-family: "Courier New", monospace;
+        font-family: "VT323", monospace;
       }
       canvas {
         display: block;
@@ -34,7 +39,6 @@
         animation: scanlines 20s infinite linear;
         opacity: 0.3;
       }
-
       @keyframes scanlines {
         from {
           background-position: 0 0;
@@ -72,7 +76,6 @@
         text-shadow: 0 0 10px #0f0;
         animation: flicker 5s infinite;
       }
-
       @keyframes flicker {
         0% {
           opacity: 1;
@@ -110,12 +113,10 @@
         border-top: 1px solid rgba(255, 0, 0, 0.3);
         border-bottom: 1px solid rgba(255, 0, 0, 0.3);
       }
-
       .torino-3 {
         color: #f00;
         animation: warning-pulse 1.5s infinite;
       }
-
       @keyframes warning-pulse {
         0% {
           text-shadow: 0 0 10px #f00;
@@ -128,6 +129,7 @@
         }
       }
 
+      /* Flexbox controls panel */
       #controls {
         position: absolute;
         bottom: 20px;
@@ -137,37 +139,40 @@
         padding: 20px;
         border: 1px solid #0f0;
         box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
-        border-radius: 0;
         text-transform: uppercase;
         letter-spacing: 1px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
-
       #controls label {
-        display: block;
-        margin: 10px 0;
+        display: flex;
+        align-items: center;
+        margin: 5px 0;
         cursor: pointer;
       }
-
+      /* Custom checkbox toggle */
       #controls input[type="checkbox"] {
         appearance: none;
-        width: 16px;
-        height: 16px;
-        border: 1px solid #0f0;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #0f0;
         background: transparent;
         margin-right: 8px;
         position: relative;
         cursor: pointer;
       }
-
       #controls input[type="checkbox"]:checked::before {
-        content: "✓";
+        content: "";
         position: absolute;
-        color: #0f0;
-        font-size: 14px;
-        left: 2px;
-        top: -2px;
+        width: 100%;
+        height: 100%;
+        background: #0f0;
+        opacity: 0.5;
+        top: 0;
+        left: 0;
+        border-radius: 50%;
       }
-
       #impactSelect {
         background: rgba(0, 20, 0, 0.8);
         color: #0f0;
@@ -177,7 +182,6 @@
         width: 100%;
         cursor: pointer;
       }
-
       #simulateImpact {
         background: #f00;
         color: white;
@@ -191,7 +195,6 @@
         animation: button-pulse 2s infinite;
         width: 100%;
       }
-
       @keyframes button-pulse {
         0% {
           background-color: #f00;
@@ -207,9 +210,8 @@
         }
       }
 
-      /* Warning overlay for impact simulation */
+      /* Warning overlay using opacity transitions */
       .warning-overlay {
-        display: none;
         position: fixed;
         top: 50%;
         left: 50%;
@@ -221,21 +223,14 @@
         letter-spacing: 3px;
         pointer-events: none;
         z-index: 1000;
-        animation: warning-flash 0.5s infinite;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+      }
+      .warning-overlay.active {
+        opacity: 1;
       }
 
-      @keyframes warning-flash {
-        0% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-
+      /* Console UI styling */
       #console {
         position: absolute;
         top: 50%;
@@ -248,14 +243,13 @@
         border: 2px solid #0f0;
         box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
         color: #0f0;
-        font-family: "Courier New", monospace;
+        font-family: "VT323", monospace;
         padding: 20px;
         display: none;
         z-index: 1000;
         overflow: hidden;
         animation: console-glow 2s infinite;
       }
-
       @keyframes console-glow {
         0% {
           box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
@@ -267,7 +261,6 @@
           box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
         }
       }
-
       #console-header {
         position: absolute;
         top: 0;
@@ -281,7 +274,6 @@
         justify-content: space-between;
         align-items: center;
       }
-
       #console-close {
         cursor: pointer;
         background: none;
@@ -290,7 +282,6 @@
         font-weight: bold;
         font-size: 20px;
       }
-
       #console-content {
         height: calc(100% - 30px);
         margin-top: 30px;
@@ -299,25 +290,20 @@
         font-size: 14px;
         line-height: 1.4;
       }
-
       #console-content::-webkit-scrollbar {
         width: 8px;
       }
-
       #console-content::-webkit-scrollbar-track {
         background: rgba(0, 20, 0, 0.5);
       }
-
       #console-content::-webkit-scrollbar-thumb {
         background: #0f0;
       }
-
       .console-line {
         margin: 2px 0;
         opacity: 0;
         animation: type-in 0.1s forwards;
       }
-
       @keyframes type-in {
         from {
           opacity: 0;
@@ -326,19 +312,15 @@
           opacity: 1;
         }
       }
-
       .console-error {
         color: #f00;
       }
-
       .console-warning {
         color: #ff0;
       }
-
       .console-success {
         color: #0f0;
       }
-
       #fetch-data {
         background: rgba(0, 20, 0, 0.8);
         color: #0f0;
@@ -346,11 +328,10 @@
         padding: 5px 10px;
         cursor: pointer;
         text-transform: uppercase;
-        font-family: "Courier New", monospace;
+        font-family: "VT323", monospace;
         margin-top: 10px;
         animation: button-glow 2s infinite;
       }
-
       @keyframes button-glow {
         0% {
           box-shadow: 0 0 5px #0f0;
@@ -362,13 +343,73 @@
           box-shadow: 0 0 5px #0f0;
         }
       }
+
+      /* Progress bar for simulation */
+      #impactProgress {
+        display: none;
+        width: 100%;
+        margin-top: 10px;
+        appearance: none;
+        height: 10px;
+      }
+      #impactProgress::-webkit-progress-bar {
+        background-color: #222;
+        border-radius: 5px;
+      }
+      #impactProgress::-webkit-progress-value {
+        background-color: #0f0;
+        border-radius: 5px;
+      }
+
+      /* Glitch effect for risk info */
+      @keyframes glitch {
+        0% {
+          text-shadow: 2px 2px 0 #f00;
+        }
+        50% {
+          text-shadow: -2px -2px 0 #0ff;
+        }
+        100% {
+          text-shadow: 2px 2px 0 #f00;
+        }
+      }
+      .glitch {
+        animation: glitch 0.5s infinite;
+      }
+
+      /* Tooltip style */
+      .tooltip {
+        position: relative;
+        cursor: help;
+      }
+      .tooltip::after {
+        content: attr(data-tip);
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: #0f0;
+        padding: 4px 8px;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        border-radius: 4px;
+        font-size: 0.8em;
+      }
+      .tooltip:hover::after {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
     <div id="info">
       ⚠ Weyland-Yutani Corporation ⚠<br />Asteroid Threat Assessment System
     </div>
-    <div id="risk-info"></div>
+    <div id="risk-info">
+      <!-- Risk info will be injected here -->
+    </div>
     <div id="controls">
       <div style="color: #0f0; margin-bottom: 15px; font-size: 0.9em">
         SYSTEM STATUS: ONLINE
@@ -377,11 +418,18 @@
         <input type="checkbox" id="showOrbit" checked />
         Orbital Path Display
       </label>
-      <br />
       <label>
         <input type="checkbox" id="animateAsteroid" checked />
         Real-time Tracking
       </label>
+      <!-- Impact Simulation controls -->
+      <label>Impact Simulation:</label>
+      <select id="impactSelect">
+        <option value="-1">Select impact date...</option>
+      </select>
+      <button id="simulateImpact">Simulate Impact</button>
+      <progress id="impactProgress" max="100" value="0"></progress>
+      <button id="fetch-data">UPDATE ORBITAL DATA</button>
     </div>
     <div class="warning-overlay" id="warningOverlay">
       ⚠ IMPACT SIMULATION IN PROGRESS ⚠<br />
@@ -432,19 +480,14 @@
       // Create starfield
       const starGeometry = new THREE.BufferGeometry();
       const starVertices = [];
-      const STAR_RADIUS = 1e10; // Distance to stars (10x the scene size)
-      const STAR_COUNT = 20000; // Fewer stars for better performance
-
+      const STAR_RADIUS = 1e10;
+      const STAR_COUNT = 20000;
       for (let i = 0; i < STAR_COUNT; i++) {
-        // Generate random spherical coordinates
-        const theta = 2 * Math.PI * Math.random(); // Azimuthal angle
-        const phi = Math.acos(2 * Math.random() - 1); // Polar angle
-
-        // Convert to Cartesian coordinates on a sphere
+        const theta = 2 * Math.PI * Math.random();
+        const phi = Math.acos(2 * Math.random() - 1);
         const x = STAR_RADIUS * Math.sin(phi) * Math.cos(theta);
         const y = STAR_RADIUS * Math.sin(phi) * Math.sin(theta);
         const z = STAR_RADIUS * Math.cos(phi);
-
         starVertices.push(x, y, z);
       }
       starGeometry.setAttribute(
@@ -453,7 +496,7 @@
       );
       const starMaterial = new THREE.PointsMaterial({
         color: 0xffffff,
-        size: 3, // Fixed pixel size
+        size: 3,
         sizeAttenuation: false,
         opacity: 0.8,
         transparent: true,
@@ -462,17 +505,17 @@
       scene.add(starField);
 
       // Add Sun
-      const sunGeometry = new THREE.SphereGeometry(696340 * 2, 32, 32); // Sun radius in km (scaled up for visibility)
+      const sunGeometry = new THREE.SphereGeometry(696340 * 2, 32, 32);
       const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
       const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
       scene.add(sunMesh);
 
-      // Add Earth with texture
+      // Add Earth
       const earthGeometry = new THREE.SphereGeometry(
         EARTH_RADIUS * 1000,
         32,
         32
-      ); // Scaled up for visibility
+      );
       const earthMaterial = new THREE.MeshBasicMaterial({ color: 0x0077ff });
       const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
       earthMesh.position.set(AU, 0, 0);
@@ -489,7 +532,7 @@
       const inc = 3.40835; // deg
       const Omega = 271.36819; // deg
       const omega = 134.36408; // deg
-      const M0 = 13.72139; // deg (Mean Anomaly at epoch)
+      const M0 = 13.72139; // deg
       const a_km = a * AU;
 
       function orbitalPosition(f) {
@@ -497,28 +540,21 @@
         let x = r * Math.cos(f);
         let y = r * Math.sin(f);
         let z = 0;
-
-        // Apply argument of periapsis rotation
         const cos_omega = Math.cos(omega * deg2rad);
         const sin_omega = Math.sin(omega * deg2rad);
         const x1 = x * cos_omega - y * sin_omega;
         const y1 = x * sin_omega + y * cos_omega;
         const z1 = z;
-
-        // Apply inclination rotation
         const cos_inc = Math.cos(inc * deg2rad);
         const sin_inc = Math.sin(inc * deg2rad);
         const x2 = x1;
         const y2 = y1 * cos_inc - z1 * sin_inc;
         const z2 = y1 * sin_inc + z1 * cos_inc;
-
-        // Apply longitude of ascending node rotation
         const cos_Omega = Math.cos(Omega * deg2rad);
         const sin_Omega = Math.sin(Omega * deg2rad);
         const X = x2 * cos_Omega - y2 * sin_Omega;
         const Y = x2 * sin_Omega + y2 * cos_Omega;
         const Z = z2;
-
         return new THREE.Vector3(X, Y, Z);
       }
 
@@ -527,7 +563,6 @@
       for (let f_deg = 0; f_deg <= 360; f_deg += 1) {
         orbitPoints.push(orbitalPosition(f_deg * deg2rad));
       }
-
       const orbitGeometry = new THREE.BufferGeometry().setFromPoints(
         orbitPoints
       );
@@ -543,14 +578,13 @@
         EARTH_RADIUS * 100,
         32,
         32
-      ); // Much larger for visibility
+      );
       const asteroidMaterial = new THREE.MeshBasicMaterial({
         color: 0xff0000,
         transparent: true,
         opacity: 0.9,
       });
       const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
-      // Add glow effect
       const asteroidGlow = new THREE.Sprite(
         new THREE.SpriteMaterial({
           map: new THREE.CanvasTexture(createGlowTexture()),
@@ -574,10 +608,9 @@
         canvas.width = 256;
         canvas.height = 64;
         context.fillStyle = "white";
-        context.font = "24px Arial";
+        context.font = "24px VT323";
         context.textAlign = "center";
         context.fillText(text, 128, 32);
-
         const texture = new THREE.CanvasTexture(canvas);
         const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
         const sprite = new THREE.Sprite(spriteMaterial);
@@ -599,21 +632,18 @@
         return canvas;
       }
 
-      // Animation variables
       let time = 0;
       const period = 10; // seconds for one orbit
       let currentImpactIndex = -1;
       let isSimulatingImpact = false;
+      let simulationInterval, progressInterval;
 
-      // UI Controls
       const showOrbitCheckbox = document.getElementById("showOrbit");
       const animateAsteroidCheckbox =
         document.getElementById("animateAsteroid");
-
       showOrbitCheckbox.addEventListener("change", (e) => {
         orbitLine.visible = e.target.checked;
       });
-
       window.addEventListener("resize", () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -622,12 +652,9 @@
 
       function animate() {
         requestAnimationFrame(animate);
-
         if (animateAsteroidCheckbox.checked) {
-          time += 0.016; // Approximately 60fps
-
+          time += 0.016;
           if (isSimulatingImpact && currentImpactIndex >= 0) {
-            // During impact simulation, move asteroid toward Earth
             const earthPos = earthMesh.position;
             const asteroidPos = asteroidMesh.position;
             const direction = new THREE.Vector3().subVectors(
@@ -635,18 +662,12 @@
               asteroidPos
             );
             const distance = direction.length();
-
             if (distance > EARTH_RADIUS * 2) {
-              // Move asteroid toward Earth
               direction.normalize();
-              asteroidMesh.position.add(direction.multiplyScalar(AU * 0.01)); // Speed of approach
-
-              // Make asteroid glow stronger as it approaches
+              asteroidMesh.position.add(direction.multiplyScalar(AU * 0.01));
               const intensity = 1 + (AU * 0.1 - distance) / (AU * 0.1);
               asteroidGlow.material.color.setRGB(intensity, 0.2, 0.2);
               asteroidGlow.scale.setScalar(EARTH_RADIUS * 300 * intensity);
-
-              // Shake camera based on proximity
               if (distance < AU * 0.05) {
                 const shake = (1 - distance / (AU * 0.05)) * 1000000;
                 camera.position.x += (Math.random() - 0.5) * shake;
@@ -654,44 +675,45 @@
                 camera.position.z += (Math.random() - 0.5) * shake;
               }
             } else {
-              // Impact occurred
               isSimulatingImpact = false;
               currentImpactIndex = -1;
-              impactSelect.value = -1;
-
-              // Reset asteroid position
+              document.getElementById("impactSelect").value = -1;
               time = 0;
-              const f = 0;
-              const pos = orbitalPosition(f);
+              const pos = orbitalPosition(0);
               asteroidMesh.position.copy(pos);
-
-              // Reset glow effect
               asteroidGlow.material.color.setRGB(1, 0.2, 0.2);
               asteroidGlow.scale.setScalar(EARTH_RADIUS * 300);
+              clearInterval(simulationInterval);
+              clearInterval(progressInterval);
+              document.getElementById("impactProgress").style.display = "none";
+              document.getElementById("impactProgress").value = 0;
+              document.getElementById("risk-info").classList.remove("glitch");
+              document
+                .getElementById("warningOverlay")
+                .classList.remove("active");
             }
           } else {
-            // Normal orbital motion
             const f = ((time % period) / period) * 2 * Math.PI;
             const pos = orbitalPosition(f);
             asteroidMesh.position.copy(pos);
           }
         }
-
         controls.update();
         renderer.render(scene, camera);
       }
-
       animate();
 
-      // Load ephemeris data and initialize impact-related features
-      const response = await fetch("ephemeris.json");
-      const ephemeris = await response.json();
+      async function loadEphemeris() {
+        const response = await fetch("ephemeris.json");
+        return response.json();
+      }
+      const ephemeris = await loadEphemeris();
 
       // Create impact markers
       const impactMarkers = [];
-      const impactDates = ephemeris.impact_risk.potential_impacts.dates;
-      const impactProbs = ephemeris.impact_risk.potential_impacts.probabilities;
-
+      const impactDates = ephemeris.impact_risk.potential_impacts.dates || [];
+      const impactProbs =
+        ephemeris.impact_risk.potential_impacts.probabilities || [];
       for (let i = 0; i < impactDates.length; i++) {
         const markerGeometry = new THREE.SphereGeometry(
           EARTH_RADIUS * 500,
@@ -710,65 +732,52 @@
         scene.add(marker);
         impactMarkers.push(marker);
       }
-
-      // Add impact simulation controls
-      const controlsDiv = document.getElementById("controls");
-      controlsDiv.innerHTML += `
-        <br/>
-        <label>Impact Simulation:</label>
-        <br/>
-        <select id="impactSelect">
-          <option value="-1">Select impact date...</option>
-          ${impactDates
-            .map(
-              (date, i) =>
-                `<option value="${i}">${date} (Prob: ${impactProbs[
-                  i
-                ].toExponential(1)})</option>`
-            )
-            .join("")}
-        </select>
-        <br/>
-        <button id="simulateImpact">Simulate Impact</button>
-      `;
-
+      // Populate impact select options
       const impactSelect = document.getElementById("impactSelect");
-      const simulateButton = document.getElementById("simulateImpact");
+      impactSelect.innerHTML =
+        `<option value="-1">Select impact date...</option>` +
+        impactDates
+          .map(
+            (date, i) =>
+              `<option value="${i}">${date} (Prob: ${impactProbs[
+                i
+              ].toExponential(1)})</option>`
+          )
+          .join("");
 
+      const simulateButton = document.getElementById("simulateImpact");
       simulateButton.addEventListener("click", () => {
         const selectedIndex = parseInt(impactSelect.value);
         if (selectedIndex >= 0) {
           currentImpactIndex = selectedIndex;
           isSimulatingImpact = true;
-
-          // Show warning overlay
+          document.getElementById("risk-info").classList.add("glitch");
           const warningOverlay = document.getElementById("warningOverlay");
-          warningOverlay.style.display = "block";
-
-          // Store current camera position for reset
+          warningOverlay.classList.add("active");
+          const progressBar = document.getElementById("impactProgress");
+          progressBar.style.display = "block";
+          progressBar.value = 0;
+          let progress = 0;
+          progressInterval = setInterval(() => {
+            progress += 1;
+            progressBar.value = progress;
+            if (progress >= 100) clearInterval(progressInterval);
+          }, 100);
           const originalCameraPos = camera.position.clone();
-
-          // Move camera closer to Earth
           const earthPos = earthMesh.position;
           camera.position.set(
             earthPos.x + EARTH_RADIUS * 100,
             earthPos.y + EARTH_RADIUS * 100,
             earthPos.z + EARTH_RADIUS * 100
           );
-
-          // Look at Earth
           controls.target.copy(earthPos);
-
-          // Hide all markers except the selected one
           impactMarkers.forEach((marker, i) => {
             marker.visible = i === selectedIndex;
           });
-
-          // Reset after simulation
-          setTimeout(() => {
+          simulationInterval = setTimeout(() => {
             camera.position.copy(originalCameraPos);
             controls.target.set(0, 0, 0);
-            warningOverlay.style.display = "none";
+            // Simulation end is handled in the animate loop.
           }, 10000);
         }
       });
@@ -779,20 +788,15 @@
       const impactVelocity = ephemeris.impact_risk.impact_velocity;
       const potentialImpacts = ephemeris.impact_risk.potential_impacts;
       const lastUpdated = ephemeris.impact_risk.last_updated;
-
       riskInfo.innerHTML = `
         <span class="torino-3">
-          ⚠ THREAT ASSESSMENT: TORINO SCALE ${torinoScale} ⚠
-          <br>
+          ⚠ THREAT ASSESSMENT: TORINO SCALE ${torinoScale} ⚠<br>
           <span style="font-size: 0.9em">
-            ALERT: IMMEDIATE ASTRONOMICAL OBSERVATION REQUIRED
-            <br>
+            ALERT: IMMEDIATE ASTRONOMICAL OBSERVATION REQUIRED<br>
             IMPACT VELOCITY: ${impactVelocity.value.toFixed(2)} ${
         impactVelocity.unit
-      }
-            <br>
-            DETECTED IMPACT SCENARIOS: ${potentialImpacts.count}
-            <br>
+      }<br>
+            DETECTED IMPACT SCENARIOS: ${potentialImpacts.count}<br>
             <span style="font-size: 0.8em; opacity: 0.8;">
               LAST SYSTEM UPDATE: ${lastUpdated || "DATA UNAVAILABLE"}
             </span>
@@ -800,101 +804,123 @@
         </span>
       `;
 
-      // Add console UI functionality
+      // Console UI functionality
       const consoleUI = {
         element: document.getElementById("console"),
         content: document.getElementById("console-content"),
         isVisible: false,
-
         show() {
           this.element.style.display = "block";
           this.isVisible = true;
         },
-
         hide() {
           this.element.style.display = "none";
           this.isVisible = false;
         },
-
         async addLine(text, type = "") {
           const line = document.createElement("div");
           line.className = `console-line ${type}`;
           line.textContent = text;
           this.content.appendChild(line);
           this.content.scrollTop = this.content.scrollHeight;
-          await new Promise((resolve) => setTimeout(resolve, 50)); // Delay between lines
+          await new Promise((resolve) => setTimeout(resolve, 50));
         },
-
         clear() {
           this.content.innerHTML = "";
         },
       };
-
       document.getElementById("console-close").addEventListener("click", () => {
         consoleUI.hide();
       });
-
-      // Add fetch data button to controls
-      const fetchButton = document.createElement("button");
-      fetchButton.id = "fetch-data";
-      fetchButton.textContent = "UPDATE ORBITAL DATA";
-      controlsDiv.appendChild(fetchButton);
-
-      fetchButton.addEventListener("click", async () => {
-        consoleUI.show();
-        consoleUI.clear();
-
-        await consoleUI.addLine("INITIALIZING DATABASE CONNECTION...");
-        await consoleUI.addLine(
-          "ACCESSING HORIZONS TELNET SERVER...",
-          "console-warning"
-        );
-
-        try {
-          await consoleUI.addLine("> CONNECTING TO horizons.jpl.nasa.gov:6775");
-          await consoleUI.addLine("CONNECTION ESTABLISHED", "console-success");
+      document
+        .getElementById("fetch-data")
+        .addEventListener("click", async () => {
+          consoleUI.show();
+          consoleUI.clear();
+          await consoleUI.addLine("INITIALIZING THREAT ASSESSMENT UPDATE...");
           await consoleUI.addLine(
-            "REQUESTING ORBITAL ELEMENTS FOR 2024 YR4..."
-          );
-
-          const response = await fetch("ephemeris.json");
-          const data = await response.json();
-
-          await consoleUI.addLine(
-            "ORBITAL ELEMENTS RECEIVED",
-            "console-success"
-          );
-          await consoleUI.addLine("ACCESSING SENTRY API...");
-          await consoleUI.addLine("> CONNECTING TO ssd-api.jpl.nasa.gov");
-          await consoleUI.addLine(
-            "RETRIEVING IMPACT RISK ASSESSMENT...",
+            "ACCESSING JPL SENTRY SYSTEM...",
             "console-warning"
           );
-
-          await consoleUI.addLine("DATA SYNCHRONIZED", "console-success");
-          await consoleUI.addLine(
-            `DETECTED ${data.impact_risk.potential_impacts.count} IMPACT SCENARIOS`
-          );
-          await consoleUI.addLine(
-            `TORINO SCALE: ${data.impact_risk.torino_scale.maximum}`,
-            "console-error"
-          );
-
-          await consoleUI.addLine("UPDATE COMPLETE", "console-success");
-
-          // Auto-close after completion
-          setTimeout(() => {
-            consoleUI.hide();
-            location.reload(); // Refresh to show new data
-          }, 3000);
-        } catch (error) {
-          await consoleUI.addLine("ERROR: " + error.message, "console-error");
-          await consoleUI.addLine(
-            "CONNECTION FAILED - RETRY RECOMMENDED",
-            "console-error"
-          );
-        }
-      });
+          try {
+            await consoleUI.addLine("> CONNECTING TO ssd-api.jpl.nasa.gov");
+            const sentryUrl = "https://ssd-api.jpl.nasa.gov/sentry.api";
+            const params = new URLSearchParams({
+              des: "2024 YR4",
+              format: "json",
+            });
+            await consoleUI.addLine("ESTABLISHING SECURE CONNECTION...");
+            const response = await fetch(`${sentryUrl}?${params}`);
+            if (!response.ok)
+              throw new Error(`API responded with status: ${response.status}`);
+            const data = await response.json();
+            await consoleUI.addLine(
+              "CONNECTION ESTABLISHED",
+              "console-success"
+            );
+            if (data && data.count > 0) {
+              await consoleUI.addLine("ANALYZING IMPACT SCENARIOS...");
+              const summary = data.summary;
+              await consoleUI.addLine(
+                `DETECTED IMPACT SCENARIOS: ${summary.n_imp}`,
+                "console-warning"
+              );
+              await consoleUI.addLine(
+                `MAXIMUM TORINO SCALE: ${summary.ts_max}`,
+                summary.ts_max > 0 ? "console-error" : "console-success"
+              );
+              await consoleUI.addLine(
+                `CUMULATIVE IMPACT PROBABILITY: ${summary.ip_cum}`,
+                "console-warning"
+              );
+              await consoleUI.addLine("UPDATING LOCAL DATABASE...");
+              await consoleUI.addLine("DATA SYNCHRONIZED", "console-success");
+              riskInfo.innerHTML = `
+              <span class="torino-3">
+                ⚠ THREAT ASSESSMENT: TORINO SCALE ${summary.ts_max} ⚠<br>
+                <span style="font-size: 0.9em">
+                  ALERT: IMMEDIATE ASTRONOMICAL OBSERVATION REQUIRED<br>
+                  IMPACT VELOCITY: ${parseFloat(
+                    data.data[0].v_inf || 0
+                  ).toFixed(2)} km/s<br>
+                  DETECTED IMPACT SCENARIOS: ${summary.n_imp}<br>
+                  <span style="font-size: 0.8em; opacity: 0.8;">
+                    LAST SYSTEM UPDATE: ${summary.cdate || "DATA UNAVAILABLE"}
+                  </span>
+                </span>
+              </span>
+            `;
+              impactSelect.innerHTML =
+                `<option value="-1">Select impact date...</option>` +
+                data.data
+                  .map(
+                    (impact, i) =>
+                      `<option value="${i}">${impact.date} (Prob: ${parseFloat(
+                        impact.ip
+                      ).toExponential(1)})</option>`
+                  )
+                  .join("");
+            } else {
+              await consoleUI.addLine(
+                "NO IMPACT SCENARIOS DETECTED",
+                "console-warning"
+              );
+            }
+            await consoleUI.addLine("UPDATE COMPLETE", "console-success");
+            setTimeout(() => {
+              consoleUI.hide();
+            }, 5000);
+          } catch (error) {
+            await consoleUI.addLine("ERROR: " + error.message, "console-error");
+            await consoleUI.addLine(
+              "CONNECTION FAILED - RETRY RECOMMENDED",
+              "console-error"
+            );
+            setTimeout(() => {
+              consoleUI.hide();
+            }, 4000);
+          }
+        });
     </script>
   </body>
 </html>
