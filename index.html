@@ -72,6 +72,7 @@
         letter-spacing: 2px;
         text-shadow: 0 0 10px #0f0;
         animation: flicker 5s infinite;
+        font-size: 1.2em;
       }
       @keyframes flicker {
         0% {
@@ -96,7 +97,7 @@
           opacity: 1;
         }
       }
-      /* Risk Info & Countdown */
+      /* Risk Info & Countdown (combined) */
       #risk-info {
         position: absolute;
         top: 80px;
@@ -109,7 +110,9 @@
         padding: 20px 0;
         border-top: 1px solid rgba(255, 0, 0, 0.3);
         border-bottom: 1px solid rgba(255, 0, 0, 0.3);
+        font-size: 1.2em;
       }
+      /* Countdown styling inside risk-info */
       #countdown {
         margin-top: 10px;
         font-size: 1.2em;
@@ -144,6 +147,7 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+        font-size: 1.2em;
       }
       #controls label {
         display: flex;
@@ -181,6 +185,7 @@
         margin: 10px 0;
         width: 100%;
         cursor: pointer;
+        font-size: 1em;
       }
       #simulateImpact {
         background: #f00;
@@ -208,6 +213,18 @@
           background-color: #f00;
           box-shadow: 0 0 10px #f00;
         }
+      }
+      /* Info button styling */
+      #infoButton {
+        background: #0f0;
+        color: #000;
+        border: none;
+        padding: 8px 12px;
+        cursor: pointer;
+        text-transform: uppercase;
+        font-weight: bold;
+        margin-top: 10px;
+        font-size: 1em;
       }
       /* Warning overlay */
       .warning-overlay {
@@ -341,7 +358,7 @@
           box-shadow: 0 0 5px #0f0;
         }
       }
-      /* Progress bar */
+      /* Progress bar for simulation */
       #impactProgress {
         display: none;
         width: 100%;
@@ -396,6 +413,63 @@
       .tooltip:hover::after {
         opacity: 1;
       }
+      /* --- Modal Info Popup Styles --- */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.9);
+      }
+      .modal-content {
+        background-color: #111;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #0f0;
+        width: 80%;
+        color: #0f0;
+        font-family: "VT323", monospace;
+        text-align: left;
+        font-size: 1.2em;
+      }
+      .close-button {
+        color: #0f0;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close-button:hover,
+      .close-button:focus {
+        color: #fff;
+      }
+      /* Source links styling */
+      .source-links {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(0, 255, 0, 0.3);
+      }
+      .source-links a {
+        color: #0f0;
+        text-decoration: none;
+        display: inline-block;
+        padding: 5px 10px;
+        border: 1px solid #0f0;
+        margin: 5px;
+        transition: all 0.3s ease;
+      }
+      .source-links a:hover {
+        background: rgba(0, 255, 0, 0.1);
+        box-shadow: 0 0 10px #0f0;
+      }
+      .source-links a::before {
+        content: ">";
+        margin-right: 5px;
+      }
     </style>
   </head>
   <body>
@@ -403,13 +477,11 @@
       ⚠ Weyland-Yutani Corporation ⚠<br />Asteroid Threat Assessment System
     </div>
     <div id="risk-info">
-      <!-- Risk info will be injected here -->
+      <!-- Risk info and countdown get injected here -->
       <div id="countdown"></div>
     </div>
     <div id="controls">
-      <div style="color: #0f0; margin-bottom: 15px; font-size: 0.9em">
-        SYSTEM STATUS: ONLINE
-      </div>
+      <div style="color: #0f0; margin-bottom: 15px">SYSTEM STATUS: ONLINE</div>
       <label>
         <input type="checkbox" id="showOrbit" checked />
         Orbital Path Display
@@ -425,6 +497,7 @@
       <button id="simulateImpact">Simulate Impact</button>
       <progress id="impactProgress" max="100" value="0"></progress>
       <button id="fetch-data">UPDATE ORBITAL DATA</button>
+      <button id="infoButton">INFO</button>
     </div>
     <div class="warning-overlay" id="warningOverlay">
       ⚠ IMPACT SIMULATION IN PROGRESS ⚠<br />STAND BY FOR ANALYSIS
@@ -435,6 +508,70 @@
         <button id="console-close">×</button>
       </div>
       <div id="console-content"></div>
+    </div>
+    <!-- Modal Info Popup -->
+    <div id="infoPopup" class="modal">
+      <div class="modal-content">
+        <span class="close-button" id="closeInfoPopup">&times;</span>
+        <h2>About This Visualization</h2>
+        <p>
+          Welcome to the Asteroid Threat Assessment System! This visualization
+          is driven by data from the <code>ephemeris.json</code> file. The key
+          parameters include:
+        </p>
+        <ul>
+          <li>
+            <strong>Orbital Elements:</strong> Semimajor axis (a), Eccentricity
+            (e), Inclination (i), Longitude of Ascending Node (Ω), Argument of
+            Periapsis (ω), and Mean Anomaly (M₀).
+          </li>
+          <li>
+            <strong>Physical Parameters:</strong> Absolute magnitude, slope
+            parameter, etc. (Some values may be null.)
+          </li>
+          <li>
+            <strong>Impact Risk:</strong> Impact probability (converted to a
+            percentage), Palermo scale, Torino scale, and predicted impact dates
+            with probabilities (as percentages) from the JPL Sentry System.
+          </li>
+          <li>
+            <strong>Observations:</strong> Total observations and the residual
+            RMS error (indicating orbital uncertainty).
+          </li>
+        </ul>
+        <p>
+          The orbital position is computed via:
+          <br /><em>r = a(1 - e²) / (1 + e cos f)</em> <br />with rotations for
+          the argument of periapsis, inclination, and ascending node.
+        </p>
+        <p>
+          Additionally, a live countdown to the next potential impact and a
+          dynamic impact cone (visualizing uncertainty based on RMS) are
+          displayed.
+          <br /><br />
+          <em>Note:</em> This system is for informational and entertainment
+          purposes only.
+        </p>
+        <div class="source-links">
+          <h3>Official Data Sources:</h3>
+          <a
+            href="https://cneos.jpl.nasa.gov/sentry/details.html#?des=2024%20YR4"
+            target="_blank"
+          >
+            CNEOS Sentry Details
+          </a>
+          <a
+            href="https://ssd-api.jpl.nasa.gov/doc/sentry.html"
+            target="_blank"
+          >
+            JPL Sentry API Documentation
+          </a>
+          <p style="font-size: 0.9em; margin-top: 10px">
+            Data provided by NASA/JPL-Caltech Center for Near Earth Object
+            Studies
+          </p>
+        </div>
+      </div>
     </div>
     <script type="importmap">
       {
@@ -448,13 +585,13 @@
       import * as THREE from "three";
       import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-      // Wrap everything in an async IIFE so we can load ephemeris first.
+      // Wrap everything in an async IIFE to load ephemeris first.
       (async function init() {
-        // Load ephemeris from JSON.
+        // Load ephemeris data.
         const response = await fetch("ephemeris.json");
         const ephemeris = await response.json();
 
-        // Extract orbital parameters from the loaded JSON.
+        // Extract orbital elements.
         const orbitalElements = ephemeris.orbital_elements;
         const a = orbitalElements.semimajor_axis.value;
         const e = orbitalElements.eccentricity;
@@ -463,12 +600,12 @@
         const omega = orbitalElements.argument_periapsis.value;
         const M0 = orbitalElements.mean_anomaly.value;
 
-        // Constants
+        // Constants.
         const AU = 1.495978707e8; // km
         const deg2rad = Math.PI / 180;
         const EARTH_RADIUS = 6371; // km
 
-        // Create scene, camera, renderer.
+        // Set up scene, camera, renderer.
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(
           60,
@@ -485,7 +622,7 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
 
-        // Define orbitalPosition using loaded parameters.
+        // Orbital position function.
         function orbitalPosition(f) {
           const a_km = a * AU;
           const r = (a_km * (1 - e * e)) / (1 + e * Math.cos(f));
@@ -525,7 +662,7 @@
         const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
         scene.add(orbitLine);
 
-        // Add starfield, Sun, Earth.
+        // Starfield.
         const starGeometry = new THREE.BufferGeometry();
         const starVertices = [];
         const STAR_RADIUS = 1e10;
@@ -552,22 +689,63 @@
         const starField = new THREE.Points(starGeometry, starMaterial);
         scene.add(starField);
 
+        // Sun.
         const sunGeometry = new THREE.SphereGeometry(696340 * 2, 32, 32);
         const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
         const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
         scene.add(sunMesh);
 
+        // Earth.
+        // const earthGeometry = new THREE.SphereGeometry(
+        //   EARTH_RADIUS * 1000,
+        //   32,
+        //   32
+        // );
+        // const earthMaterial = new THREE.MeshBasicMaterial({ color: 0x0077ff });
+        // const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+        // earthMesh.position.set(AU, 0, 0);
+        // scene.add(earthMesh);
+
+        // Load a realistic Earth texture (public domain)
+        const earthTexture = new THREE.TextureLoader().load(
+          "https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg"
+        );
+        // Use MeshStandardMaterial for better lighting and opacity
+        const earthMaterial = new THREE.MeshStandardMaterial({
+          map: earthTexture,
+          roughness: 0.3, // Lower roughness for more shine
+          metalness: 0.0, // No metalness for natural look
+          transparent: false,
+          side: THREE.FrontSide, // Only render front side
+          opacity: 1.0,
+        });
+
+        // Create Earth with the texture
         const earthGeometry = new THREE.SphereGeometry(
           EARTH_RADIUS * 1000,
           32,
           32
         );
-        const earthMaterial = new THREE.MeshBasicMaterial({ color: 0x0077ff });
         const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
         earthMesh.position.set(AU, 0, 0);
+
+        // Add ambient light for base illumination
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased ambient light
+        scene.add(ambientLight);
+
+        // Add directional light from the Sun's position
+        const sunLight = new THREE.DirectionalLight(0xffffff, 2.0); // Increased sun brightness
+        sunLight.position.set(0, 0, 0); // At Sun's position
+        sunLight.target = earthMesh; // Make sure the light targets Earth
+        scene.add(sunLight);
+
+        // Add a hemisphere light for better ambient illumination
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5);
+        scene.add(hemiLight);
+
         scene.add(earthMesh);
 
-        // Add Earth label.
+        // Earth label.
         function makeLabel(text) {
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d");
@@ -587,7 +765,7 @@
         earthMesh.add(earthLabel);
         earthLabel.position.set(0, EARTH_RADIUS * 2000, 0);
 
-        // Add asteroid.
+        // Asteroid.
         const asteroidGeometry = new THREE.SphereGeometry(
           EARTH_RADIUS * 100,
           32,
@@ -623,7 +801,6 @@
         asteroidGlow.scale.set(EARTH_RADIUS * 300, EARTH_RADIUS * 300, 1);
         asteroidMesh.add(asteroidGlow);
         scene.add(asteroidMesh);
-
         const asteroidLabel = makeLabel("2024 YR4");
         asteroidMesh.add(asteroidLabel);
         asteroidLabel.position.set(0, 100000, 0);
@@ -638,21 +815,23 @@
         riskInfo.innerHTML = `
           <span class="torino-3">
             ⚠ THREAT ASSESSMENT: TORINO SCALE ${torinoScale} ⚠<br>
-            <span style="font-size: 0.9em">
+            <span style="font-size: 1em">
               ALERT: IMMEDIATE ASTRONOMICAL OBSERVATION REQUIRED<br>
               IMPACT VELOCITY: ${impactVelocity.value.toFixed(2)} ${
           impactVelocity.unit
         }<br>
               DETECTED IMPACT SCENARIOS: ${potentialImpacts.count}<br>
+              PRIMARY IMPACT PROBABILITY: ${(
+                ephemeris.impact_risk.impact_probability * 100
+              ).toFixed(2)}%<br>
               CALC ERROR (Residual RMS): ${residualRMS.toFixed(3)}<br>
-              <span style="font-size: 0.8em; opacity: 0.8;">
+              <span style="font-size: 0.9em; opacity: 0.8;">
                 LAST SYSTEM UPDATE: ${lastUpdated || "DATA UNAVAILABLE"}
               </span>
             </span>
           </span>
           <div id="countdown"></div>
         `;
-
         // Set countdown based on first potential impact date.
         let nextImpactDate;
         if (potentialImpacts.dates.length > 0) {
@@ -677,7 +856,7 @@
         }
         setInterval(updateCountdown, 1000);
 
-        // Impact Cone Visualization (only when asteroid is near Earth)
+        // Impact Cone Visualization.
         let impactCone;
         function createImpactCone(earthPos, asteroidPos, rmsValue) {
           const direction = new THREE.Vector3().subVectors(
@@ -710,7 +889,7 @@
           return cone;
         }
 
-        // UI: Impact markers and simulation.
+        // Impact markers and simulation.
         const impactMarkers = [];
         const impactDates = potentialImpacts.dates || [];
         const impactProbs = potentialImpacts.probabilities || [];
@@ -738,9 +917,9 @@
           impactDates
             .map(
               (date, i) =>
-                `<option value="${i}">${date} (Prob: ${impactProbs[
-                  i
-                ].toExponential(1)})</option>`
+                `<option value="${i}">${date} (Prob: ${(
+                  impactProbs[i] * 100
+                ).toFixed(2)}%)</option>`
             )
             .join("");
 
@@ -785,14 +964,13 @@
 
         // Main animation loop.
         let time = 0;
-        const period = 10; // seconds per orbit.
+        const period = 10;
         function animateScene() {
           requestAnimationFrame(animateScene);
           time += 0.016;
           const f = ((time % period) / period) * 2 * Math.PI;
           const pos = orbitalPosition(f);
           asteroidMesh.position.copy(pos);
-          // When asteroid nears Earth, show the impact cone.
           const distance = pos.distanceTo(earthMesh.position);
           if (distance < 1e8) {
             if (!impactCone) {
@@ -823,22 +1001,8 @@
         }
         animateScene();
 
-        // Utility: update a sprite label's text.
-        function updateLabel(sprite, newText) {
-          const canvas = sprite.material.map.image;
-          const ctx = canvas.getContext("2d");
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = "white";
-          ctx.font = "24px VT323";
-          ctx.textAlign = "center";
-          ctx.fillText(newText, canvas.width / 2, canvas.height / 2 + 8);
-          sprite.material.map.needsUpdate = true;
-        }
-
         // Update RMS label on Earth.
-        const rmsLabel = makeLabel(
-          `RMS: ${ephemeris.observations.residual_rms.toFixed(3)}`
-        );
+        const rmsLabel = makeLabel(`RMS: ${residualRMS.toFixed(3)}`);
         rmsLabel.position.set(0, EARTH_RADIUS * 2500, 0);
         earthMesh.add(rmsLabel);
 
@@ -846,6 +1010,22 @@
           camera.aspect = window.innerWidth / window.innerHeight;
           camera.updateProjectionMatrix();
           renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- Modal Info Popup ---
+        const infoButton = document.getElementById("infoButton");
+        const infoPopup = document.getElementById("infoPopup");
+        const closeInfoPopup = document.getElementById("closeInfoPopup");
+        infoButton.addEventListener("click", () => {
+          infoPopup.style.display = "block";
+        });
+        closeInfoPopup.addEventListener("click", () => {
+          infoPopup.style.display = "none";
+        });
+        window.addEventListener("click", (event) => {
+          if (event.target === infoPopup) {
+            infoPopup.style.display = "none";
+          }
         });
       })();
     </script>
