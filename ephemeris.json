@@ -1,0 +1,101 @@
+{
+  "name": "2024 YR4",
+  "epoch": "2460692.5",
+  "epoch_description": "2025-Jan-17.00",
+  "orbital_elements": {
+    "semimajor_axis": {
+      "value": 2.516470604003079,
+      "unit": "AU"
+    },
+    "eccentricity": 0.661623472160467,
+    "inclination": {
+      "value": 3.408351512306363,
+      "unit": "deg"
+    },
+    "longitude_ascending_node": {
+      "value": 271.3681926281245,
+      "unit": "deg"
+    },
+    "argument_periapsis": {
+      "value": 134.3640801802532,
+      "unit": "deg"
+    },
+    "mean_anomaly": {
+      "value": 13.72138904308634,
+      "unit": "deg"
+    }
+  },
+  "physical_parameters": {
+    "absolute_magnitude": {
+      "value": 23.967,
+      "uncertainty": null
+    },
+    "slope_parameter": 0.15,
+    "diameter": {
+      "value": null,
+      "unit": "km"
+    },
+    "albedo": null,
+    "rotation_period": {
+      "value": null,
+      "unit": "hours"
+    },
+    "spectral_type": null
+  },
+  "orbit_classification": {
+    "neo": true,
+    "pha": false,
+    "moid": {
+      "value": 0.00275799,
+      "unit": "AU"
+    }
+  },
+  "observations": {
+    "total": 307,
+    "date_range": {
+      "first": "2024",
+      "last": "2025"
+    },
+    "arc_length": {
+      "value": null,
+      "unit": "days"
+    },
+    "residual_rms": 0.056859
+  },
+  "impact_risk": {
+    "source": "JPL Sentry System",
+    "last_updated": "2025-02-05",
+    "status": "monitored",
+    "impact_probability": 0.0187,
+    "palermo_scale": {
+      "maximum": -0.4,
+      "cumulative": -0.4
+    },
+    "torino_scale": {
+      "maximum": 3
+    },
+    "potential_impacts": {
+      "count": 6,
+      "dates": [
+        "2032-12-22.59",
+        "2039-12-23.35",
+        "2043-12-23.15",
+        "2047-12-22.05",
+        "2047-12-22.05",
+        "2079-12-22.73"
+      ],
+      "probabilities": [
+        0.0187,
+        1.872e-06,
+        1.875e-07,
+        6.007e-07,
+        3.699e-06,
+        4.811e-08
+      ]
+    },
+    "impact_velocity": {
+      "value": 17.32,
+      "unit": "km/s"
+    }
+  }
+}
