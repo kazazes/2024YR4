@@ -117,16 +117,17 @@
       #risk-info {
         position: absolute;
         top: 80px;
-        width: 100%;
+        left: 20px;
+        width: 400px;
         color: #f00;
-        text-align: center;
+        text-align: left;
         font-weight: bold;
         text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
-        background: rgba(20, 0, 0, 0.5);
-        padding: 20px 0;
-        border-top: 1px solid rgba(255, 0, 0, 0.3);
-        border-bottom: 1px solid rgba(255, 0, 0, 0.3);
-        font-size: 1.2em;
+        background: rgba(20, 0, 0, 0.8);
+        padding: 20px;
+        border: 1px solid rgba(255, 0, 0, 0.3);
+        font-size: 1.1em;
+        z-index: 100;
       }
       #countdown,
       #simDate {
@@ -486,6 +487,68 @@
         content: ">";
         margin-right: 5px;
       }
+      /* Mobile responsiveness */
+      @media screen and (max-width: 768px) {
+        #controls {
+          display: none;
+        }
+
+        #info {
+          font-size: 1em;
+        }
+
+        #risk-info {
+          width: 90%;
+          left: 5%;
+          font-size: 0.9em;
+          padding: 10px;
+        }
+
+        /* Show only info button on mobile */
+        #mobile-info-button {
+          display: block;
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: #0f0;
+          color: #000;
+          border: none;
+          padding: 12px;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 1.2em;
+          box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal-content {
+          margin: 5% auto;
+          width: 90%;
+          max-height: 90vh;
+          overflow-y: auto;
+          font-size: 1em;
+          padding: 15px;
+        }
+
+        /* Adjust warning overlay for mobile */
+        .warning-overlay {
+          font-size: 18px;
+          width: 90%;
+          text-align: center;
+        }
+      }
+
+      @media screen and (min-width: 769px) {
+        #mobile-info-button {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -519,6 +582,7 @@
     <div class="warning-overlay" id="warningOverlay">
       ⚠ IMPACT SIMULATION IN PROGRESS ⚠<br />STAND BY FOR ANALYSIS
     </div>
+    <button id="mobile-info-button">i</button>
     <div id="console">
       <div id="console-header">
         <span>WEYLAND-YUTANI ORBITAL DATABASE ACCESS</span>
@@ -623,13 +687,13 @@
         const EARTH_RADIUS = 6371; // km
         const displayedEarthRadius = EARTH_RADIUS * 1000; // For our Earth mesh
 
-        // Set up scene, camera, renderer.
+        // Set up scene, camera, renderer
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(
           60,
           window.innerWidth / window.innerHeight,
           1,
-          1e10
+          1e12
         );
         camera.position.set(0, 2e8, 4e8);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -639,36 +703,78 @@
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
+        controls.maxDistance = 1e11;
+        controls.minDistance = EARTH_RADIUS * 5000;
 
-        // Orbital position function.
-        function orbitalPosition(f) {
-          const a_km = a * AU;
+        // Earth's orbital elements (J2000)
+        const earthOrbitalElements = {
+          a: 1.00000011, // AU
+          e: 0.01671022,
+          i: 0.00005, // degrees
+          Omega: -11.26064, // degrees
+          omega: 102.94719, // degrees
+          M0: 100.46435, // degrees
+        };
+
+        // Orbital position function (reusable for both Earth and asteroid).
+        function orbitalPosition(f, elements, scale = 1) {
+          const a_km = elements.a * AU * scale;
+          const e = elements.e;
           const r = (a_km * (1 - e * e)) / (1 + e * Math.cos(f));
           let x = r * Math.cos(f);
           let y = r * Math.sin(f);
           let z = 0;
-          const cos_omega = Math.cos(omega * deg2rad);
-          const sin_omega = Math.sin(omega * deg2rad);
+          const cos_omega = Math.cos(elements.omega * deg2rad);
+          const sin_omega = Math.sin(elements.omega * deg2rad);
           const x1 = x * cos_omega - y * sin_omega;
           const y1 = x * sin_omega + y * cos_omega;
           const z1 = z;
-          const cos_inc = Math.cos(inc * deg2rad);
-          const sin_inc = Math.sin(inc * deg2rad);
+          const cos_inc = Math.cos(elements.i * deg2rad);
+          const sin_inc = Math.sin(elements.i * deg2rad);
           const x2 = x1;
           const y2 = y1 * cos_inc - z1 * sin_inc;
           const z2 = y1 * sin_inc + z1 * cos_inc;
-          const cos_Omega = Math.cos(Omega * deg2rad);
-          const sin_Omega = Math.sin(Omega * deg2rad);
+          const cos_Omega = Math.cos(elements.Omega * deg2rad);
+          const sin_Omega = Math.sin(elements.Omega * deg2rad);
           const X = x2 * cos_Omega - y2 * sin_Omega;
           const Y = x2 * sin_Omega + y2 * cos_Omega;
           const Z = z2;
           return new THREE.Vector3(X, Y, Z);
         }
 
-        // Create nominal orbit path.
+        // Create nominal orbit paths.
+        // Earth's orbit
+        const earthOrbitPoints = [];
+        for (let f_deg = 0; f_deg <= 360; f_deg += 1) {
+          earthOrbitPoints.push(
+            orbitalPosition(f_deg * deg2rad, earthOrbitalElements)
+          );
+        }
+        const earthOrbitGeometry = new THREE.BufferGeometry().setFromPoints(
+          earthOrbitPoints
+        );
+        const earthOrbitMaterial = new THREE.LineBasicMaterial({
+          color: 0x3366ff,
+          linewidth: 2,
+        });
+        const earthOrbitLine = new THREE.Line(
+          earthOrbitGeometry,
+          earthOrbitMaterial
+        );
+        scene.add(earthOrbitLine);
+
+        // Asteroid's orbit
+        const asteroidElements = {
+          a: a,
+          e: e,
+          i: inc,
+          Omega: Omega,
+          omega: omega,
+          M0: M0,
+        };
         const orbitPoints = [];
         for (let f_deg = 0; f_deg <= 360; f_deg += 1) {
-          orbitPoints.push(orbitalPosition(f_deg * deg2rad));
+          orbitPoints.push(orbitalPosition(f_deg * deg2rad, asteroidElements));
         }
         const orbitGeometry = new THREE.BufferGeometry().setFromPoints(
           orbitPoints
@@ -684,7 +790,7 @@
         const starGeometry = new THREE.BufferGeometry();
         const starVertices = [];
         const STAR_RADIUS = 1e10;
-        const STAR_COUNT = 20000;
+        const STAR_COUNT = 5000;
         for (let i = 0; i < STAR_COUNT; i++) {
           const theta = 2 * Math.PI * Math.random();
           const phi = Math.acos(2 * Math.random() - 1);
@@ -699,9 +805,9 @@
         );
         const starMaterial = new THREE.PointsMaterial({
           color: 0xffffff,
-          size: 3,
+          size: 1.5,
           sizeAttenuation: false,
-          opacity: 0.8,
+          opacity: 0.5,
           transparent: true,
         });
         const starField = new THREE.Points(starGeometry, starMaterial);
@@ -896,7 +1002,7 @@
 
         // Update simulation date (linked to asteroid's position).
         let time = 0;
-        const period = 10; // seconds for one simulation orbit
+        const period = 60; // seconds for one simulation orbit (slowed down from 10 to 60)
         function updateSimDate() {
           // Fraction of simulation orbit completed.
           const fraction = (time % period) / period;
@@ -904,8 +1010,13 @@
           const simDate = new Date(
             epochDate.getTime() + fraction * orbitalPeriodMs
           );
+          // Format date to show only month and year
+          const monthYear = simDate.toLocaleString("en-US", {
+            month: "long",
+            year: "numeric",
+          });
           document.getElementById("simDate").textContent =
-            "Simulation Date: " + simDate.toLocaleString();
+            "Simulation Date: " + monthYear;
         }
 
         // Impact Cone Visualization.
@@ -1014,30 +1125,130 @@
           }
         });
 
+        // Console UI functionality
+        const consoleUI = {
+          element: document.getElementById("console"),
+          content: document.getElementById("console-content"),
+          show() {
+            this.element.style.display = "block";
+          },
+          hide() {
+            this.element.style.display = "none";
+          },
+          clear() {
+            this.content.innerHTML = "";
+          },
+          addLine(text, className = "") {
+            const line = document.createElement("div");
+            line.className = `console-line ${className}`;
+            line.textContent = text;
+            this.content.appendChild(line);
+            this.content.scrollTop = this.content.scrollHeight;
+          },
+        };
+
+        // Close console button
+        document
+          .getElementById("console-close")
+          .addEventListener("click", () => {
+            consoleUI.hide();
+          });
+
+        // Fetch data button functionality
+        document
+          .getElementById("fetch-data")
+          .addEventListener("click", async () => {
+            consoleUI.show();
+            consoleUI.clear();
+            consoleUI.addLine("Initializing connection to orbital database...");
+
+            // Simulate a sequence of console messages
+            const messages = [
+              {
+                text: "Establishing secure connection to NASA JPL...",
+                delay: 800,
+              },
+              {
+                text: "Connection established. Authenticating...",
+                delay: 1200,
+              },
+              {
+                text: "Authentication successful.",
+                delay: 600,
+                class: "console-success",
+              },
+              { text: "Requesting Sentry impact risk data...", delay: 1000 },
+              {
+                text: "ERROR: Connection refused by remote server",
+                delay: 1500,
+                class: "console-error",
+              },
+              { text: "Attempting reconnection...", delay: 800 },
+              {
+                text: "ERROR: NASA API endpoints no longer available",
+                delay: 1000,
+                class: "console-error",
+              },
+              {
+                text: "SYSTEM NOTICE: As of 2024, direct access to NASA orbital data has been restricted.",
+                delay: 1200,
+                class: "console-warning",
+              },
+              {
+                text: "Using cached data from last successful update (2024-02-06)",
+                delay: 1000,
+              },
+              {
+                text: "Database update failed. Please check official NASA websites for current data.",
+                delay: 1500,
+                class: "console-error",
+              },
+            ];
+
+            // Display messages with delays
+            let totalDelay = 0;
+            messages.forEach((msg) => {
+              totalDelay += msg.delay;
+              setTimeout(() => {
+                consoleUI.addLine(msg.text, msg.class || "");
+              }, totalDelay);
+            });
+          });
+
         // Main animation loop.
         function animateScene() {
           requestAnimationFrame(animateScene);
           time += 0.016;
-          const f = ((time % period) / period) * 2 * Math.PI;
-          const pos = orbitalPosition(f);
-          asteroidMesh.position.copy(pos);
+
+          // Update Earth position
+          const earthF = ((time % period) / period) * 2 * Math.PI;
+          const earthPos = orbitalPosition(earthF, earthOrbitalElements);
+          earthMesh.position.copy(earthPos);
+
+          // Update asteroid position relative to current Earth position
+          const asteroidF = ((time % period) / period) * 2 * Math.PI;
+          const asteroidPos = orbitalPosition(asteroidF, asteroidElements);
+          asteroidMesh.position.copy(asteroidPos);
+
           updateSimDate(); // Update simulation date based on asteroid position.
           // Update Moon orbit.
           moonPivot.rotation.y += 0.005;
-          const distance = pos.distanceTo(earthMesh.position);
+
+          // Update impact cone if asteroid is close to Earth
+          const distance = asteroidPos.distanceTo(earthPos);
           if (distance < 1e8) {
             if (!impactCone) {
               impactCone = createImpactCone(
-                earthMesh.position,
-                pos,
-                ephemeris.observations.residual_rms
+                earthPos,
+                asteroidPos,
+                ephemeris.observations?.residual_rms || 0
               );
               scene.add(impactCone);
             } else {
               const newCone = createImpactCone(
-                earthMesh.position,
-                pos,
-                ephemeris.observations.residual_rms
+                earthPos,
+                asteroidPos,
+                ephemeris.observations?.residual_rms || 0
               );
               impactCone.geometry.dispose();
               impactCone.geometry = newCone.geometry;
@@ -1049,6 +1260,7 @@
             impactCone.geometry.dispose();
             impactCone = null;
           }
+
           controls.update();
           renderer.render(scene, camera);
         }
@@ -1067,18 +1279,50 @@
 
         // --- Modal Info Popup ---
         const infoButton = document.getElementById("infoButton");
+        const mobileInfoButton = document.getElementById("mobile-info-button");
         const infoPopup = document.getElementById("infoPopup");
         const closeInfoPopup = document.getElementById("closeInfoPopup");
-        infoButton.addEventListener("click", () => {
+
+        function showInfoPopup() {
           infoPopup.style.display = "block";
+        }
+
+        infoButton.addEventListener("click", showInfoPopup);
+        mobileInfoButton.addEventListener("click", showInfoPopup);
+        mobileInfoButton.addEventListener("touchend", (e) => {
+          e.preventDefault();
+          showInfoPopup();
         });
+
         closeInfoPopup.addEventListener("click", () => {
           infoPopup.style.display = "none";
         });
+        closeInfoPopup.addEventListener("touchend", (e) => {
+          e.preventDefault();
+          infoPopup.style.display = "none";
+        });
+
         window.addEventListener("click", (event) => {
           if (event.target === infoPopup) {
             infoPopup.style.display = "none";
           }
+        });
+
+        // Add touch controls for OrbitControls
+        renderer.domElement.addEventListener("touchstart", (e) => {
+          if (e.touches.length === 1) {
+            controls.enableRotate = true;
+            controls.enablePan = false;
+          } else if (e.touches.length === 2) {
+            controls.enableZoom = true;
+            controls.enableRotate = false;
+          }
+        });
+
+        renderer.domElement.addEventListener("touchend", () => {
+          controls.enableRotate = true;
+          controls.enableZoom = true;
+          controls.enablePan = false;
         });
       })();
     </script>
