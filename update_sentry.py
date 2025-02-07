@@ -95,8 +95,10 @@ def update_json_file(sentry_data):
         with open("ephemeris.json", "r") as f:
             data = json.load(f)
 
-        # Update impact risk data
+        # Update or create impact risk data
         if sentry_data and "impact_risk" in sentry_data:
+            if "impact_risk" not in data:
+                data["impact_risk"] = {}
             data["impact_risk"].update(sentry_data["impact_risk"])
 
         # Write updated data back to file
@@ -107,6 +109,9 @@ def update_json_file(sentry_data):
 
     except Exception as e:
         print(f"Error updating JSON file: {e}")
+        # Print the current state of data for debugging
+        print("\nCurrent data structure:")
+        print(json.dumps(data, indent=2))
 
 
 def main():
