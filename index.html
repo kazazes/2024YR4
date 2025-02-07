@@ -784,27 +784,31 @@
 
         // Asteroid.
         const asteroidGeometry = new THREE.SphereGeometry(
-          EARTH_RADIUS * 100,
+          EARTH_RADIUS * 500,
           32,
           32
         );
-        const asteroidMaterial = new THREE.MeshBasicMaterial({
+        const asteroidMaterial = new THREE.MeshPhongMaterial({
           color: 0xff0000,
+          emissive: 0x330000,
+          shininess: 30,
           transparent: true,
           opacity: 0.9,
         });
         const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
+
+        // Enhanced glow effect
         function createGlowTexture() {
           const canvas = document.createElement("canvas");
-          canvas.width = 64;
-          canvas.height = 64;
+          canvas.width = 128;
+          canvas.height = 128;
           const ctx = canvas.getContext("2d");
-          const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+          const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
           gradient.addColorStop(0, "rgba(255, 60, 60, 1)");
-          gradient.addColorStop(0.3, "rgba(255, 60, 60, 0.5)");
+          gradient.addColorStop(0.4, "rgba(255, 60, 60, 0.5)");
           gradient.addColorStop(1, "rgba(255, 60, 60, 0)");
           ctx.fillStyle = gradient;
-          ctx.fillRect(0, 0, 64, 64);
+          ctx.fillRect(0, 0, 128, 128);
           return canvas;
         }
         const asteroidGlow = new THREE.Sprite(
@@ -815,12 +819,14 @@
             blending: THREE.AdditiveBlending,
           })
         );
-        asteroidGlow.scale.set(EARTH_RADIUS * 300, EARTH_RADIUS * 300, 1);
+        asteroidGlow.scale.set(EARTH_RADIUS * 1000, EARTH_RADIUS * 1000, 1);
         asteroidMesh.add(asteroidGlow);
         scene.add(asteroidMesh);
+
+        // Make label more visible
         const asteroidLabel = makeLabel("2024 YR4");
         asteroidMesh.add(asteroidLabel);
-        asteroidLabel.position.set(0, 100000, 0);
+        asteroidLabel.position.set(0, EARTH_RADIUS * 600, 0);
 
         // Update risk info and countdown.
         const riskInfo = document.getElementById("risk-info");
@@ -828,7 +834,9 @@
         const impactVelocity = ephemeris.impact_risk.impact_velocity;
         const potentialImpacts = ephemeris.impact_risk.potential_impacts;
         const lastUpdated = ephemeris.impact_risk.last_updated;
-        const residualRMS = ephemeris.observations.residual_rms;
+        const residualRMS = ephemeris.observations?.residual_rms || 0;
+        const impactProbability = ephemeris.impact_risk.impact_probability;
+
         riskInfo.innerHTML = `
           <span class="torino-3">
             ⚠ THREAT ASSESSMENT: TORINO SCALE ${torinoScale} ⚠<br>
@@ -838,10 +846,14 @@
           impactVelocity.unit
         }<br>
               DETECTED IMPACT SCENARIOS: ${potentialImpacts.count}<br>
-              PRIMARY IMPACT PROBABILITY: ${(
-                ephemeris.impact_risk.impact_probability * 100
-              ).toFixed(2)}%<br>
-              CALC ERROR (Residual RMS): ${residualRMS.toFixed(3)}<br>
+              PRIMARY IMPACT PROBABILITY: ${(impactProbability * 100).toFixed(
+                2
+              )}%<br>
+              ${
+                residualRMS
+                  ? `CALC ERROR (Residual RMS): ${residualRMS.toFixed(3)}<br>`
+                  : ""
+              }
               <span style="font-size: 0.9em; opacity: 0.8;">
                 LAST SYSTEM UPDATE: ${lastUpdated || "DATA UNAVAILABLE"}
               </span>
@@ -860,7 +872,7 @@
 
         // Set countdown based on first potential impact date.
         let nextImpactDate;
-        if (potentialImpacts.dates.length > 0) {
+        if (potentialImpacts.dates && potentialImpacts.dates.length > 0) {
           nextImpactDate = new Date(potentialImpacts.dates[0].split(".")[0]);
         }
         function updateCountdown() {

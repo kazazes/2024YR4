@@ -29,7 +29,7 @@
     "source": "JPL Sentry System",
     "last_updated": "2025-02-06",
     "status": "monitored",
-    "impact_probability": 0.02278,
+    "impact_probability": 0.02278663172,
     "palermo_scale": {
       "maximum": -0.31,
       "cumulative": -0.31

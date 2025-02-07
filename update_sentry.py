@@ -50,9 +50,9 @@ def parse_sentry_data(api_data):
                 0
             ],  # Get just the date part
             "status": "monitored",
-            "impact_probability": (
-                float(max_torino_impact.get("ip", 0)) if max_torino_impact else 0
-            ),
+            "impact_probability": float(
+                summary.get("ip", 0)
+            ),  # Use overall probability from summary
             "palermo_scale": {
                 "maximum": float(summary.get("ps_max", 0)),
                 "cumulative": float(summary.get("ps_cum", 0)),
@@ -76,7 +76,9 @@ def parse_sentry_data(api_data):
         probabilities = []
         for impact in sorted(api_data["data"], key=lambda x: x["date"]):
             impacts.append(impact["date"])
-            probabilities.append(float(impact["ip"]))
+            # Convert scientific notation to float
+            prob = float(impact["ip"])
+            probabilities.append(prob)
 
         data["impact_risk"]["potential_impacts"]["dates"] = impacts
         data["impact_risk"]["potential_impacts"]["probabilities"] = probabilities
